@@ -1,6 +1,6 @@
 package com.address.book;
 
-public class Contact {
+public class Contacts {
     private String firstName;
     private String lastName;
     private String address;
@@ -10,7 +10,7 @@ public class Contact {
     private long phoneNo;
     private String email;
 
-    public Contact(String myfirstName, String mylastName, String myaddress, String mycity, String mystate, int myzip, long myphoneNo, String myemail) {
+    public Contacts(String myfirstName, String mylastName, String myaddress, String mycity, String mystate, int myzip, long myphoneNo, String myemail) {
         firstName = myfirstName;
         lastName = mylastName;
         address = myaddress;
