@@ -2,7 +2,7 @@ package com.address.book;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
+import java.util.Collections;
 public class AddressBook {
 
     List<Contacts> list = new ArrayList<>();
@@ -31,10 +31,12 @@ public class AddressBook {
             String email = in.next();
             Contacts contact = new Contacts(firstname, lastname, address, city, state, zip, phone, email);
             list.add(contact);
+            Collections.addAll(list);
         }
     }
 
     public void displayListItems() {
+        list.sort(Contacts.ConNameComparator);
         for (Contacts someinfo : list) {
             System.out.println(someinfo.getFirstName() + someinfo.getLastName() + "  " + someinfo.getAddress() + "  " + someinfo.getCity() + "  " + someinfo.getState() + "  " + someinfo.getZip() + "  " + someinfo.getPhoneNo() + "  " + someinfo.getEmail());
         }
@@ -64,7 +66,7 @@ public class AddressBook {
                 System.out.println("Enter email id:");
                 String email = in.next();
                 list.set(index, new Contacts(firstname, lastname, address, city, state, zip, phone, email));
-                displayListItems();
+                Collections.addAll(list);
             }
         }
     }
