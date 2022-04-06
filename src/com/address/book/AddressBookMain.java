@@ -1,5 +1,4 @@
 package com.address.book;
-
 import com.address.book.Person;
 
 import java.util.HashMap;
@@ -25,7 +24,8 @@ public class AddressBookMain {
             System.out.println("\n\t\tEnter A to Add Person ");
             System.out.println("\t\tEnter E to Edit Person");
             System.out.println("\t\tEnter D to Delete Person");
-            System.out.println("\t\tEnter S to Show Person Detail");
+            System.out.println("\t\tEnter S to Search Person");
+            System.out.println("\t\tEnter P to Print Address Book");
             System.out.println("\t\tEnter Q to Quit ");
             System.out.print("\t\tPlease Select One Option : ");
             char userInput = scanner.nextLine().toUpperCase().charAt(0);
@@ -44,14 +44,20 @@ public class AddressBookMain {
                     break;
                 case 'D':
                     //delete
-                    System.out.print("\nEnter the first name of the person to edit : ");
+                    System.out.print("\nEnter the first name of the person to delete : ");
                     String personName = scanner.nextLine();
-                    System.out.print("\nEnter the city name of the person to edit : ");
+                    System.out.print("\nEnter the city name of the person to delete : ");
                     String city = scanner.nextLine();
                     deletePerson(personName,city);
                     break;
                 case 'S':
-                    //Show
+                    //Search
+                    System.out.print("\nEnter the city name of the person to search : ");
+                    String pCity = scanner.nextLine();
+                    searchPerson(pCity);
+                    break;
+                case 'P':
+                    //print
                     System.out.println("\n\t\t" + addressBookMap.toString());
                     break;
                 case 'Q':
@@ -82,7 +88,11 @@ public class AddressBookMain {
         System.out.println("\n\t\t" + addressBookMap.toString());
     }
 
-
+    /**
+     * Method for taking person details in Person-Model format.
+     *
+     * @return : Person Object
+     */
     private static Person contactFields() {
         Person person = new Person();
         System.out.print("Enter First Name : ");
@@ -108,6 +118,9 @@ public class AddressBookMain {
         return person;
     }
 
+    /**
+     * Method for deleting the person from existing address book
+     */
     private static void deletePerson(String firstName, String cityName) {
         Person newPerson = addressBookMap.get(cityName).get(firstName);
         System.out.println(newPerson.toString());
@@ -120,6 +133,11 @@ public class AddressBookMain {
 
     }
 
+    /**
+     * Method for taking person details and store them into storage with
+     * their city name reference.
+     * In this program used hashmap. Multiple person can add.
+     */
     private static void addBook() {
         Map<String, Person> newPersonMap = new HashMap();
         Person newPerson;
@@ -132,5 +150,15 @@ public class AddressBookMain {
         addressBookMap.put(newPerson.getCity(), newPersonMap);
 
         System.out.println("\n\t\t" + addressBookMap.toString());
+    }
+
+    /**
+     * Method for search person in a city across address book by using stream.
+     * @param city : name of city to be search.
+     */
+    private static void searchPerson(String city) {
+        addressBookMap.entrySet().stream()
+                .filter(e ->e.getKey().equalsIgnoreCase(city))
+                .forEach(m -> System.out.println(m));
     }
 }
