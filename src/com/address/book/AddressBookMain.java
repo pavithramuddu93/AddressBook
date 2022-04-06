@@ -1,5 +1,4 @@
 package com.address.book;
-import com.address.book.Person;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -24,6 +23,7 @@ public class AddressBookMain {
             System.out.println("\t\tEnter E to Edit Person");
             System.out.println("\t\tEnter D to Delete Person");
             System.out.println("\t\tEnter S to Search Person");
+            System.out.println("\t\tEnter C to Count Persons In City");
             System.out.println("\t\tEnter P to Print Address Book");
             System.out.println("\t\tEnter Q to Quit ");
             System.out.print("\t\tPlease Select One Option : ");
@@ -53,7 +53,12 @@ public class AddressBookMain {
                     //Search
                     System.out.print("\nEnter the city name of the person to search : ");
                     String pCity = scanner.nextLine();
-                    searchPerson(pCity);
+                    System.out.println("\nPersons in city " + pCity + " is : " + searchPerson(pCity));
+                    break;
+                case 'C':
+                    System.out.print("\nEnter the city name to count persons : ");
+                    String countCity = scanner.nextLine();
+                    System.out.println("\nNumber of Persons in city " + countCity + " is " + personsCountByCity(countCity));
                     break;
                 case 'P':
                     //print
@@ -154,10 +159,23 @@ public class AddressBookMain {
     /**
      * Method for search person in a city across address book by using stream.
      * @param city : name of city to be search.
+     * @return : Hashmap containing personList of city.
      */
-    private static void searchPerson(String city) {
+    private static Map<String, Map<String, Person>> searchPerson(String city) {
+        Map<String, Map<String, Person>> personsByCity = new HashMap();
         addressBookMap.entrySet().stream()
                 .filter(e ->e.getKey().equalsIgnoreCase(city))
-                .forEach(m -> System.out.println(m));
+                .forEach(entry -> personsByCity.put(entry.getKey(), entry.getValue()));
+        return personsByCity;
+    }
+
+    /**
+     * Method for counting Number of personList in particular city.
+     * @param city : name of city to be search
+     * @return : count
+     */
+    private static int personsCountByCity(String city){
+        Map<String, Map<String, Person>> personCount = searchPerson(city);
+        return personCount.get(city).size();
     }
 }
