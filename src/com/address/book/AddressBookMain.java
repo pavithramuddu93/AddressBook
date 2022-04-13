@@ -3,11 +3,19 @@ import com.address.book.Person;
 import com.address.book.ValidationException;
 import com.address.book.ObjectMapper;
 
+import bridgelabz.exception.ValidationException;
+import bridgelabz.model.Person;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+
 import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Map.Entry.comparingByKey;
 import static java.util.stream.Collectors.toMap;
@@ -17,7 +25,12 @@ public class AddressBookMain {
     private static Map<String, Person> personMap = new HashMap();
     private static Map<String, Map<String, Person>> addressBookMap = new HashMap();
 
-    public static void main(String[] args) throws ValidationException {
+    /**
+     * This is the main method, Here is the starting point of the program.
+     *
+     * @param args
+     */
+    public static void main(String[] args) throws ValidationException, IOException {
 
         boolean isExit = false;
 
@@ -43,7 +56,7 @@ public class AddressBookMain {
                     String firstName = scanner.nextLine();
                     System.out.print("\nEnter the city name of the person to edit : ");
                     String cityName = scanner.nextLine();
-                    editContact(firstName,cityName);
+                    editContact(firstName, cityName);
                     break;
                 case 'D':
                     //delete
@@ -51,7 +64,7 @@ public class AddressBookMain {
                     String personName = scanner.nextLine();
                     System.out.print("\nEnter the city name of the person to delete : ");
                     String city = scanner.nextLine();
-                    deletePerson(personName,city);
+                    deletePerson(personName, city);
                     break;
                 case 'S':
                     //Search
@@ -66,6 +79,7 @@ public class AddressBookMain {
                     break;
                 case 'P':
                     //print
+                    writeCSVIntoFile("csvOutput.csv");
                     writeIntoFile();
                     System.out.print("\nEnter the city name to sort : ");
                     String sortCity = scanner.nextLine();
@@ -73,6 +87,9 @@ public class AddressBookMain {
                     System.out.println("\n\t\t Sorted By Person Name : " + sortByPersonName(sortCity));
                     System.out.println("\n\t\t sorted By City : " + sortByCity());
 
+                    break;
+                case 'R':
+                    readCSV("csvOutput.csv");
                     break;
                 case 'Q':
                     //quit
@@ -86,6 +103,9 @@ public class AddressBookMain {
     }
 
 
+    /**
+     * Method For editing the existing person details on the basis of first name.
+     */
     private static void editContact(String firstName, String cityName) throws ValidationException {
         try {
             personMap = addressBookMap.get(cityName);
@@ -103,6 +123,11 @@ public class AddressBookMain {
         }
     }
 
+    /**
+     * Method for taking person details in Person-object format.
+     *
+     * @return : Person Object
+     */
     private static Person contactFields() {
         Person person = new Person();
         System.out.print("Enter First Name : ");
@@ -128,6 +153,9 @@ public class AddressBookMain {
         return person;
     }
 
+    /**
+     * Method for deleting the person from existing address book
+     */
     private static void deletePerson(String firstName, String cityName) throws ValidationException {
 
         try {
@@ -145,6 +173,11 @@ public class AddressBookMain {
 
     }
 
+    /**
+     * Method for taking person details and store them into storage with
+     * their city name reference.
+     * In this program used hashmap. Multiple person can add.
+     */
     private static void addBook() throws ValidationException {
         try {
             Map<String, Person> newPersonMap = new HashMap();
@@ -163,6 +196,12 @@ public class AddressBookMain {
         }
     }
 
+    /**
+     * Method for search person in a city across address book by using stream.
+     *
+     * @param city : name of city to be search.
+     * @return : Hashmap containing personList of city.
+     */
     private static Map<String, Map<String, Person>> searchPerson(String city) throws ValidationException {
         Map<String, Map<String, Person>> personsByCity = new HashMap();
         try {
@@ -175,11 +214,22 @@ public class AddressBookMain {
         return personsByCity;
     }
 
+    /**
+     * Method for counting Number of personList in particular city.
+     *
+     * @param city : name of city to be search
+     * @return : count
+     */
     private static int personsCountByCity(String city) throws ValidationException {
         Map<String, Map<String, Person>> personCount = searchPerson(city);
         return personCount.get(city).size();
     }
 
+    /**
+     * Method for sorting the address book by first name of person
+     *
+     * @param city : Name of address book as city of person
+     */
     private static Map<String, Person> sortByPersonName(String city) throws ValidationException {
         try {
             Map<String, Person> temp = addressBookMap.get(city);
@@ -192,6 +242,9 @@ public class AddressBookMain {
         }
     }
 
+    /**
+     * Method for sorting the address book by City name
+     */
     private static Map<String, Map<String, Person>> sortByCity() throws ValidationException {
         try {
             Map<String, Map<String, Person>> sorted = addressBookMap.entrySet().stream()
@@ -206,15 +259,76 @@ public class AddressBookMain {
     /**
      * Method for writing the address book data into a json file using jackson
      * library.
+     *
      * @throws ValidationException
      */
     private static void writeIntoFile() throws ValidationException {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(new File("outputData.json"),addressBookMap);
+            objectMapper.writeValue(new File("outputData.json"), addressBookMap);
             System.out.println("successfully");
         } catch (Exception e) {
             throw new ValidationException(e.getMessage());
         }
     }
-}
+
+    /**
+     * Method for writing addressBook data into CSV file using openCSV library.
+     *
+     * @param filePath : file name or full file path
+     */
+    private static void writeCSVIntoFile(String filePath) throws ValidationException {
+        File file = new File(filePath);
+        try {
+            List<Person> list = addressBookMap.entrySet().stream().flatMap(e -> e.getValue().entrySet().stream()).map(m -> m.getValue()).collect(Collectors.toList());
+            list.stream().forEach(e -> System.out.println(e));
+
+            CsvMapper mapper = new CsvMapper();
+            mapper.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
+
+            CsvSchema schema = CsvSchema.builder().setUseHeader(true)
+                    .addColumn("firstName")
+                    .addColumn("lastName")
+                    .addColumn("address")
+                    .addColumn("city")
+                    .addColumn("state")
+                    .addColumn("zip")
+                    .addColumn("phone")
+                    .build();
+
+            ObjectWriter writer = mapper.writerFor(Person.class).with(schema);
+
+            writer.writeValues(file).writeAll(list);
+
+            System.out.println("Users saved to csv file under path: " + file);
+        } catch (IOException e) {
+            throw new ValidationException(e.getMessage());
+        }
+    }
+
+    /**
+     * Method for reading CSV file into program
+     * @param filePath : file path
+     * @throws IOException
+     */
+    private static void readCSV(String filePath) throws IOException {
+        File csvFile = new File(filePath);
+
+        CsvMapper csvMapper = new CsvMapper();
+
+        CsvSchema csvSchema = csvMapper
+                .typedSchemaFor(Person.class)
+                .withHeader()
+                .withColumnSeparator(',')
+                .withComments();
+
+        MappingIterator<Person> addressBookItem = csvMapper
+                .readerWithTypedSchemaFor(Person.class)
+                .with(csvSchema)
+                .readValues(csvFile);
+
+        List<Person> users = addressBookItem.readAll();
+        users.forEach(System.out::println);
+    }
+
+}}
