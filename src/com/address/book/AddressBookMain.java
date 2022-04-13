@@ -1,6 +1,9 @@
 package com.address.book;
 import com.address.book.Person;
 import com.address.book.ValidationException;
+import com.address.book.ObjectMapper;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,11 +17,6 @@ public class AddressBookMain {
     private static Map<String, Person> personMap = new HashMap();
     private static Map<String, Map<String, Person>> addressBookMap = new HashMap();
 
-    /**
-     * This is the main method, Here is the starting point of the program.
-     *
-     * @param args
-     */
     public static void main(String[] args) throws ValidationException {
 
         boolean isExit = false;
@@ -68,6 +66,7 @@ public class AddressBookMain {
                     break;
                 case 'P':
                     //print
+                    writeIntoFile();
                     System.out.print("\nEnter the city name to sort : ");
                     String sortCity = scanner.nextLine();
                     System.out.println("\n\t\t Without sorting : " + addressBookMap.toString());
@@ -87,9 +86,6 @@ public class AddressBookMain {
     }
 
 
-    /**
-     * Method For editing the existing person details on the basis of first name.
-     */
     private static void editContact(String firstName, String cityName) throws ValidationException {
         try {
             personMap = addressBookMap.get(cityName);
@@ -107,11 +103,6 @@ public class AddressBookMain {
         }
     }
 
-    /**
-     * Method for taking person details in Person-Model format.
-     *
-     * @return : Person Object
-     */
     private static Person contactFields() {
         Person person = new Person();
         System.out.print("Enter First Name : ");
@@ -137,9 +128,6 @@ public class AddressBookMain {
         return person;
     }
 
-    /**
-     * Method for deleting the person from existing address book
-     */
     private static void deletePerson(String firstName, String cityName) throws ValidationException {
 
         try {
@@ -157,11 +145,6 @@ public class AddressBookMain {
 
     }
 
-    /**
-     * Method for taking person details and store them into storage with
-     * their city name reference.
-     * In this program used hashmap. Multiple person can add.
-     */
     private static void addBook() throws ValidationException {
         try {
             Map<String, Person> newPersonMap = new HashMap();
@@ -180,11 +163,6 @@ public class AddressBookMain {
         }
     }
 
-    /**
-     * Method for search person in a city across address book by using stream.
-     * @param city : name of city to be search.
-     * @return : Hashmap containing personList of city.
-     */
     private static Map<String, Map<String, Person>> searchPerson(String city) throws ValidationException {
         Map<String, Map<String, Person>> personsByCity = new HashMap();
         try {
@@ -197,20 +175,11 @@ public class AddressBookMain {
         return personsByCity;
     }
 
-    /**
-     * Method for counting Number of personList in particular city.
-     * @param city : name of city to be search
-     * @return : count
-     */
     private static int personsCountByCity(String city) throws ValidationException {
         Map<String, Map<String, Person>> personCount = searchPerson(city);
         return personCount.get(city).size();
     }
 
-    /**
-     * Method for sorting the address book by first name of person
-     * @param city : Name of address book as city of person
-     */
     private static Map<String, Person> sortByPersonName(String city) throws ValidationException {
         try {
             Map<String, Person> temp = addressBookMap.get(city);
@@ -223,15 +192,27 @@ public class AddressBookMain {
         }
     }
 
-    /**
-     * Method for sorting the address book by first name of person
-     */
     private static Map<String, Map<String, Person>> sortByCity() throws ValidationException {
         try {
             Map<String, Map<String, Person>> sorted = addressBookMap.entrySet().stream()
                     .sorted(comparingByKey())
                     .collect(toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2, LinkedHashMap::new));
             return sorted;
+        } catch (Exception e) {
+            throw new ValidationException(e.getMessage());
+        }
+    }
+
+    /**
+     * Method for writing the address book data into a json file using jackson
+     * library.
+     * @throws ValidationException
+     */
+    private static void writeIntoFile() throws ValidationException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(new File("outputData.json"),addressBookMap);
+            System.out.println("successfully");
         } catch (Exception e) {
             throw new ValidationException(e.getMessage());
         }

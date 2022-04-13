@@ -1,5 +1,4 @@
 package com.address.book;
-
 public class Person {
     private String firstName;
     private String lastName;
